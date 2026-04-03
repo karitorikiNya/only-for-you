@@ -5,7 +5,7 @@ from subprocess import Popen
 import RPi.GPIO as GPIO
 
 # ---------- GPIO ----------
-BUTTON_PIN = 26
+BUTTON_PIN = 6 #26
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
