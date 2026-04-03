@@ -2,7 +2,7 @@ import os
 
 newFiles = []
 directory = os.path.dirname(os.path.realpath(__file__))
-destinationDirectory = os.path.join(directory, 'encoded')
+destinationDirectory = os.path.normpath(os.path.join(directory, '..', 'videos'))
 
 if not os.path.exists(destinationDirectory):
 	os.mkdir(destinationDirectory)
