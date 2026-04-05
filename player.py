@@ -5,7 +5,7 @@ from subprocess import Popen
 import RPi.GPIO as GPIO
 
 # ---------- GPIO ----------
-BUTTON_PIN = 5 #6 #26
+BUTTON_PIN = 26
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -36,7 +36,6 @@ videos = []
 index = 0
 
 def loadVideos():
-    """Загрузить все mp4 и перемешать их"""
     global videos, index
     videos = [
         os.path.join(directory, f)
@@ -47,12 +46,11 @@ def loadVideos():
     index = 0
 
 def playLoop():
-    """Бесконечный цикл воспроизведения видео"""
     global index, skip
 
     while True:
         if not videos or index >= len(videos):
-            loadVideos() 
+            loadVideos()
 
         skip = False
         current_video = videos[index]
@@ -64,14 +62,14 @@ def playLoop():
             current_video
         ])
 
-        player.wait()
+        player.wait() 
         index += 1
-        time.sleep(0.1)
+        time.sleep(0.1) 
 
 # ---------- MAIN ----------
 try:
     loadVideos() 
-    playLoop()
+    playLoop() 
 except KeyboardInterrupt:
     pass
 finally:
