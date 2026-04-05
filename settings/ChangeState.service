@@ -1,0 +1,12 @@
+[Unit]
+Description=Videos or Images
+After=network.target
+[Service]
+User=pi
+Group=pi
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+ExecStart=/usr/bin/python3 /home/pi/only-for-you/splash.py
+WorkingDirectory=/home/pi/only-for-you
+Restart=always
+[Install]
+WantedBy=multi-user.target
