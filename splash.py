@@ -19,7 +19,7 @@ busy = False
 SPLASH_DIR = "/home/pi/only-for-you/splash"
 SOUND_FILE = "/home/pi/only-for-you/splash.mp3"
 
-
+# ---------- CHANGE TO ----------
 def get_images():
     return [
         os.path.join(SPLASH_DIR, f)
@@ -93,21 +93,18 @@ def button_callback(channel):
     threading.Thread(target=toggle_mode, daemon=True).start()
 
 
-# ---------- BUTTON ----------
 GPIO.add_event_detect(
     BUTTON_PIN,
-    GPIO.BOTH,
+    GPIO.BOTH, #FALLING
     callback=button_callback,
     bouncetime=300
 )
 
-# ---------- LOOP ----------
+# ---------- MAIN ----------
 try:
     while True:
         time.sleep(1)
-
 except KeyboardInterrupt:
-    GPIO.cleanup()
-
+    pass
 finally:
     GPIO.cleanup()
