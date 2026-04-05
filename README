@@ -1,0 +1,239 @@
+1. НАСТРОЙКИ ДЛЯ SSH И WIFI (РАЗДАЕМ С НОУТА/ТЕЛЕФОНА (ПОДКЛЮЧАЕМ НОУТ ТОГДА К ТЕЛЕФОНУ ТАКЖЕ))
+ssh log/pass: dv/dv
+wifi log/pass: onlyforyuo/16052007
+
+2. ДЛЯ ОБРАЗА ИСПОЛЬЗУЕМ PI IMAGE 1.7 С НАСТРОЙКАМИ:
+- for always use 
+- disable overscan
+- set hostname
+- enable ssh = use password - dv/dv
+- configurate wifi = name and password and country
+ДЕЛАЕМ ОБРАЗ
+
+3. ПОСЛЕ ЗАПИСИ, ОТКРЫВАЕМ КОНФИГ И ПРОПИСЫВАЕМ (ЕСЛИ ЧТО ПОТОМ ОН ТУТ: sudo nano /boot/config.txt)
+gpio=0-9=a2
+gpio=12-17=a2
+gpio=20-25=a2
+dtoverlay=dpi24
+enable_dpi_lcd=1
+display_default_lcd=1
+extra_transpose_buffer=2
+dpi_group=2
+dpi_mode=87
+dpi_output_format=0x7F216
+hdmi_timings=480 0 26 16 10 640 0 25 10 15 0 0 0 60 0 32000000 1
+dtoverlay=waveshare-28dpi-3b-4b
+dtoverlay=waveshare-28dpi-3b
+dtoverlay=waveshare-28dpi-4b
+display_rotate=1
+
+dtparam=audio=on
+dtoverlay=audremap,enable_jack,pins_18_19
+disable_splash=1
+
+4.В OVERLAYS КИДАЕМ ДРАЙВЕРА НА ДИСПЛЕЙ WAVESHARE
+
+5. ВСТАВЛЯЕМ SD-КАРТУ В НАШУ RPI, С РАЗДАЧЕЙ ВАЙФАЯ, ДАЛЕЕ СМОТРИМ КОННЕКТЫ И ВИДИМ ПОДКЛЮЧЕНИЕ - ПОДКЛЮЧАЕМСЯ ПО SSH 
+
+6. ЗАХОДИМ
+sudo nano /etc/apt/sources.list.d/raspi.list
+И ПРОПИСЫВАЕМ
+deb https://legacy.raspbian.org/raspbian/ buster main contrib non-free rpi
+
+7. АПДЕЙТИМ
+sudo apt-get update --allow-releaseinfo-change
+
+8. УСТАНАВЛИВАЕМ ПАКЕТЫ
+sudo apt-get install raspi-gpio omxplayer git ffmpeg fbi -y
+ИДЕМ ПИТЬ КОФЕ
+мб еще 
+python3-rpi.gpio feh fbi fim
+
+9. ЗАХОДИМ
+sudo nano /etc/rc.local
+ПРОПИСЫВАЕМ
+raspi-gpio set 18 op dl
+raspi-gpio set 19 op a5 
+
+9.1 (ДОПОЛНИТЕЛЬНО ДЛЯ СЕБЯ)
+sudo chvt 1 (переключение на tty1)
+sudo fbi -T 1 -noverbose -a /home/pi/only-for-you/load.png & (ставим а-ля заставку)
+
+10. ДАЛЕЕ СЮДА
+sudo nano /boot/cmdline.txt
+ИЩЕМ ПОДОБНОЕ И ПИШЕМ
+console=tty3
+УДАЛЯЕМ ЭТО fsck.repair=yes
+ДОБАВЛЯЕМ ЭТО consoleblank=0 quiet splash
+ЕСЛИ ХОТИМ БЕЗ ЛОГО ДОБАВИТЬ logo.nologo
+
+11. КЛОНИМ НАШ ГИТ ГДЕ PYTHON ФАЙЛЫ И КУДА БУДЕМ СКИДЫВАТЬ ВСЕ
+cd ~/
+git clone https://github.com/karitorikiNya/only-for-you.git
+
+СМ. (12-13) ПУНКТ НИЖЕ
+12.В НОВОМ ОКНЕ POWERSHELL У СЕБЯ ПРОПИСЫВАЕМ 
+scp -r 'D:\!ProjectMovie\readyvideo\*' DV@192.168.137.65:~/only-for-you/encodeVideo
+КОПИРУЕМ ПО ПУТИ, ГДЕ У НАС ВИДЕО НА НАШУ RPI (ВВЕСТИ СВОЙ АЙПИ)
+ИДЕМ ПИТЬ КОФЕ (СМ.П.12-13 !!!!)
+
+13. ДАЛЕЕ ПОСЛЕ ТОГО КАК ВИДЕО СКОПИРОВАЛОСЬ НА RPI ПЕРЕХОДИМ
+cd ~/only-for-you/encodeVideo
+ПИШЕМ
+python3 encode.py
+ИДЕМ ПИТЬ КОФЕ (СМ.П.12-13 !!!!)
+
+СЮДДДДДДДДДДДДДАААААААААААААААААААААААААААААААА!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+(12-13). ЕСЛИ НЕ ХОТИМ НА RPI ЭТО ДЕЛАТЬ И НЕ НАДОООО (ЭТО АНРИЛ БУДЕТ)
+(ПОТОМУ ЧТО ПОКА ПЕРЕКИНЕТ ВИДЕО НЕОБРАБОТАННЫЕ, ПОТОМ ПОКА ОБРАБОТАЕТ)
+(НУ ПРЯЯЯЯЯЯЯЯЯММММММ ООООООООООЧЕНЬ ДОЛГО....) 
+(ОН ЗАДЕЙСТВОВУЕТ ВСЕ РЕСУРСЫ И ДАЖЕ ЭТО НЕ ПОМОГАЕТ)
+(1 ВИДОСИК (50 СЕКУНДНЫЙ) БОЛЬШЕ 20 МИНУТ.... Я НЕ СТАЛ ЖДАТЬ...)
+
+ПОЭТОМУ
+
+ДЕЛАЕМ У СЕБЯ НА МАШИНЕ ПОДГОТОВАЛИВАЕМ ВИДЕО, КОДИРУЕМ ИХ У СЕБЯ ТАКЖЕ  (УСТАНАВЛИВАЕМ FFMPEG, VSCODE-PYTHON, ЗАПУСК КОД ENCODE.PY) 
+И ДАЛЕЕ ПЕРЕКИДЫВАЕМ ПРОСТО В ПАПКУ videos УЖЕ ГОТОВЫЕ (СКОДИРОВАННЫЕ) ВИДЕО ЧЕРЕЗ 12 ПУНКТ
+
+scp -r  'D:\!ProjectMovie\readyvideo\encoded\*' pi@192.168.137.65:~/only-for-you/videos
+
+14. ОТПРАВЛЯЕМ НА ПЕРЕЗАГРУЗКУ
+sudo reboot
+
+15. ПРОВЕРЯЕМ РАБОТОСПОСОБНОСТЬ
+python3 ~/only-for-you/player.py
+ИДЕТ ВИДЕО
+
+CTRL+C 
+ВЫХОДИМ
+
+16. СОЗДЕМ СЛУЖБУ, ЧТОБЫ АВТОМАТИЧЕСКИ ПРИ ВХОДЕ У НАС КРУТИЛОСЬ ВИДЕО
+
+sudo touch /etc/systemd/system/VictoriasSecret.service
+sudo nano /etc/systemd/system/VictoriasSecret.service
+
+ВСТАВЛЯЕМ
+[Unit]
+Description=lovely love
+After=network.target
+[Service]
+User=pi #
+Group=pi #
+Environment=XDG_RUNTIME_DIR=/run/user/1000 #
+ExecStart=/usr/bin/python3 /home/pi/only-for-you/player.py
+WorkingDirectory=/home/pi/only-for-you
+Restart=always
+[Install]
+WantedBy=multi-user.target
+
+17. ВКЛЮЧАЕМ СЛУЖБУ
+sudo systemctl enable VictoriasSecret.service
+sudo systemctl stop VictoriasSecret.service - ВЫКЛ
+sudo systemctl start VictoriasSecret.service
+
+18. В ЦЕЛОМ ВСЕ? БЛЮТУЗ -> ПАУЗА С ВЫВОДОМ КАРТИНКИ -> СКРИН МЕЖДУ ПЕРЕКЛЮЧЕНИЯМИ?(ВКЛЮЧЕНИЕ - ЛОГО, TTY1 ДАЛЕЕ ПОСЛЕ ВИДЕО НА TTY7)
+
+18.1 По кнопки переключения видео/картинка со звуком
+splash.py
+все работает+-
+осталось создать службу на подобие и все
+
+sudo touch /etc/systemd/system/ChangeState.service
+sudo nano /etc/systemd/system/ChangeState.service
+
+ВСТАВЛЯЕМ
+[Unit]
+Description=Videos or Images
+After=network.target
+[Service]
+User=pi
+Group=pi
+Environment=XDG_RUNTIME_DIR=/run/user/1000 #
+ExecStart=/usr/bin/python3 /home/pi/only-for-you/splash.py
+WorkingDirectory=/home/pi/only-for-you
+Restart=always
+[Install]
+WantedBy=multi-user.target
+
+подшаманить аудио, добавить фото для переключения
+
+18.2 блютуз 
+пакеты
+sudo apt install pulseaudio pulseaudio-module-bluetooth bluez bluez-tools bluetooth -y
+
+https://www.google.com/search?q=bluetooth+rpi+zero+%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBCTE1NDQ2ajBqN6gCALACAA&sourceid=chrome&ie=UTF-8&fbs=ADc_l-Z4aFiTJjxeec4vh5GasMUal1gsJ6vbLzBoU3XyQ2AtubZkirJ0icI5H9tky8dp-EOQ-9ITRC_QnGGgAG-LIKedCA1EKw8bsSGhUZS7gdl8eD0FcA5JDsDJigyafo_vsSvU15dX35GziOlSQ9oaaGX9bwfWIWzR9NMX-gH53i6PsQwFz6BMKWM4k28BV5n4LuZfa9lBpU4KPQQJQu5si4OCr2H02r8VSPV2RRRQM94iYTFBOblEAsCKaCYTjR2wwZ8XOKdzd0XVd1XYoqXhiotmieG_wA&ved=2ahUKEwi51pSxsdSTAxWvRfEDHffIAk8Q0NsOegQIAxAB&aep=10&ntc=1&mstk=AUtExfB7S8q-UT8JJ0fNez9Sd2KdfbkXFF0uXvDcr_GoOrJQr01mtt2Q4mA3aq3JufTVg6zddOkxi2fnznb_-PqYeqLqrmSe54BjuBCnN2t8Dl4N7MWR8Gp5J4u5liguB_r-KjFWPDACxASQmp8RK22WJ5ulN3wWSUVmiFCxM78pWhKtU0PiRM_Y9eKKhR-hMyOPbkmiCoQ_lUWtBhICUqfrXdb5e0dGBfE7rVrXCkvTS44tN7-UunzoLPGU45OMOCiB1yT4pSdIrwBJnw&csuir=1&mtid=dyDRaYaWCL-J7NYPqtv_oAw&udm=50
+
+даем права юзеру нашему и перезагружаем
+sudo usermod -aG bluetooth,lp,audio pi
+sudo reboot
+
+#systemctl status bluetooth
+#pulseaudio --check || pulseaudio --start
+systemctl --user enable pulseaudio
+systemctl --user start pulseaudio
+bluetoothctl
+
+###pulseaudio --start
+###sudo bluetoothctl
+
+power on
+agent on
+default-agent
+scan on
+
+pair XX:XX:XX:XX:XX:XX
+trust XX:XX:XX:XX:XX:XX
+connect 41:42:19:98:2D:B7
+
+paplay /usr/share/sounds/alsa/Front_Center.wav
+
+/etc/asound.conf и ~/.asoundrc
+
+pcm.!default {
+    type pulse
+    fallback "sysdefault"
+}
+
+ctl.!default {
+    type pulse
+    fallback "sysdefault"
+}
+
+скрипт для бесконечного подключения к наушникам и рестарта видео для смены аудиовыхода
+nano /home/pi/bt_reconnect.sh
+#!/bin/bash
+MAC="41:42:19:98:2D:B7"
+SERVICE="VictoriasSecret.service"
+
+# Флаг, чтобы понимать, были ли мы подключены в прошлый раз
+WAS_CONNECTED=false
+
+while true; do
+    # Проверяем статус подключения
+    if bluetoothctl info $MAC | grep -q "Connected: yes"; then
+        # Если только что подключились (были False, стали True)
+        if [ "$WAS_CONNECTED" = false ]; then
+            echo "Headphones connected! Restarting $SERVICE..."
+            sudo systemctl restart $SERVICE
+            WAS_CONNECTED=true
+        fi
+    else
+        # Если связи нет
+        if [ "$WAS_CONNECTED" = true ]; then
+            echo "Headphones lost. Switching back to speaker (Restarting $SERVICE)..."
+            sudo systemctl restart $SERVICE
+            WAS_CONNECTED=false
+        fi
+        
+        # Пытаемся подключиться, если не подключены
+        echo "Attempting to connect to $MAC..."
+        bluetoothctl connect $MAC
+    fi
+    
+    sleep 10
+done
+
+
+chmod +x /home/pi/bt_reconnect.sh
+sudo nano /etc/rc.local
+/home/pi/bt_reconnect.sh &
