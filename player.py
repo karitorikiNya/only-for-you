@@ -5,7 +5,7 @@ from subprocess import Popen
 import RPi.GPIO as GPIO
 
 # ---------- GPIO ----------
-BUTTON_PIN = 6 #26
+BUTTON_PIN = 5 #6 #26
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -52,28 +52,26 @@ def playLoop():
 
     while True:
         if not videos or index >= len(videos):
-            loadVideos()  # начинаем новый цикл с рандомной последовательностью
+            loadVideos() 
 
         skip = False
         current_video = videos[index]
 
         player = Popen([
             'omxplayer',
-            '--no-osd', '--blank',
+            '--no-osd', '-o','alsa', '--blank',
             '--aspect-mode', 'fill',
             current_video
         ])
 
-        player.wait()  # ждем конца видео ИЛИ кнопки
-
-        # После окончания/пропуска идем к следующему
+        player.wait()
         index += 1
-        time.sleep(0.1)  # антидребезг и плавный переход
+        time.sleep(0.1)
 
 # ---------- MAIN ----------
 try:
-    loadVideos()  # первый раз
-    playLoop()    # старт цикла
+    loadVideos() 
+    playLoop()
 except KeyboardInterrupt:
     pass
 finally:
