@@ -1,0 +1,12 @@
+[Unit]
+Description=Bluetooth Reconnect Monitor
+After=bluetooth.service network.target
+Wants=bluetooth.service
+[Service]
+User=pi
+Type=simple
+ExecStart=/bin/bash /home/pi/bt_reconnect.sh
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target
