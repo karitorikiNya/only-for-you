@@ -1,0 +1,16 @@
+#!/bin/sh -e
+
+_IP=$(hostname -I) || true
+if [ "$_IP" ]; then
+  printf "My IP address is %s\n" "$_IP"
+fi
+
+raspi-gpio set 18 op dl
+raspi-gpio set 19 op a5
+sudo chvt 7
+sudo fbi -T 7 -noverbose -a /home/pi/only-for-you/EasterEgg.png &
+
+dtparam=audio=on
+dtoverlay=audremap,enable_jack,pins_18_19
+
+exit 0
